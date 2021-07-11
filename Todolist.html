@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <title>List App</title>
+    <style>
+        .container {
+            width: 500px;
+            margin: auto;
+        }
+
+        ul li a {
+            float: right;
+        }
+
+        ul li input {
+            margin-right: 20px;
+        }
+
+        #done li {
+            color: #999;
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container ">
+        <h1>To Do List <span class="badge badge-danger float-right">0</span></h1>
+        <ul id="task" class="list-group"></ul>
+        <br>
+        
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Add Item">
+            <div class="input-group-append">
+                <button class="btn btn-primary ">Add list</button>
+            </div>
+        </div>
+        <br>
+
+        <ul id="done" class="list-group"></ul>
+
+    </div>
+
+
+
+    <script src="js/jquery.js"></script>
+
+    <script>
+
+        $('button').click(function () {
+
+            var text = $('input[type=text]').val();
+
+            if (!text) return false;
+            var del = $('<a>').attr('href', '#').html('&times;').click(function () {
+                $(this).parent().remove();
+                $('h1 span').html($('#task li').length)
+            })
+
+            var checkbox = $('<input>').attr('type', 'checkbox').click(function () {
+                if ($(this).is(':checked')) {
+                    $(this).parent().appendTo('#done')
+                } else {
+                    $(this).parent().appendTo('#task')
+                }
+                $('h1 span').html($('#task li').length)
+            })
+
+            $('<li>')
+                .addClass('list-group-item')
+                .html(text)
+                .prepend(checkbox)
+                .append(del)
+                .appendTo('#task')
+
+            $('h1 span').html($('#task li').length)
+
+            $('input[type=text]').val('').focus();
+
+        })
+
+        $('input').keydown(function (e) {
+            if (e.which === 13) $('button').click();
+        })
+
+    </script>
+</body>
+
+</html>
+
+
+<!-- //    del.appendTo($('<li>').html(text).appendTo('ul')); -->
