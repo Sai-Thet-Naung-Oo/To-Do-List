@@ -32,9 +32,10 @@
 
     <div class="container ">
         <h1>To Do List <span class="badge badge-danger float-right">0</span></h1>
+
         <ul id="task" class="list-group"></ul>
         <br>
-        
+
         <div class="input-group">
             <input type="text" class="form-control" placeholder="Add Item">
             <div class="input-group-append">
@@ -53,33 +54,125 @@
 
     <script>
 
+
+        const api = 'http://127.0.0.1:8000/api/task';
+       
+
+        function UpdateCheck(check,id){
+
+            fetch(api+'/checked/' + id, {
+                method: 'put',
+                body: JSON.stringify({ check: check }),
+                headers: { 'content-type': 'application/json' }
+            });
+
+        }
+
+        function EditAndDelete(name, id,checked) {
+
+            var del = $('<a>')
+                .addClass('close')
+                .html('&times;')
+                .click(function () {
+                    $(this).parent().remove();
+                    
+            return fetch(api + '/' + id, { method: 'delete' }).then(()=>{
+                $('h1 span').html($('#task li').length);
+            });
+                });
+
+            var checkbox = $('<input>').attr('type', 'checkbox').click(function () {
+                if ($(this).is(':checked')) {
+                    $(this).parent().appendTo('#done');
+                    UpdateCheck(true,id);
+
+                } else {
+                    $(this).parent().appendTo('#task');
+                    UpdateCheck(false,id);
+                }
+                $('h1 span').html($('#task li').length)
+            })
+
+            
+
+            var li = $('<li>').html($('<span>').html(name))
+                .addClass('list-group-item')
+                
+                .append(del)
+                .dblclick(function () {
+                    var text = prompt("Enter category");
+                    $('span', this).html(text);
+                    fetch(api + '/' + id, {
+                        method: 'put',
+                        body: JSON.stringify({ name: text }),
+                        headers: { 'content-type': 'application/json' }
+                    });
+                });
+
+                if(checked){
+                    checkbox.attr('checked', true);
+
+                    li.prepend(checkbox);
+                   
+                    $('#done').append(li);
+                    
+                }else{
+                    li.prepend(checkbox);
+                    $('#task').append(li);
+                }
+
+           
+
+        }
+
+
+        //first time get all
+        fetch(api).then(function (res) {
+            return res.json();    //return promise
+        }).then(function (data) {
+
+            for (let i=0;i<data.length;i++) {
+                
+                        let id = data[i].id;
+                        let name=data[i].name;
+                        let checked=data[i].check;
+                        EditAndDelete(name,id,checked);
+
+                    
+            }
+            $('h1 span').html($('#task li').length)
+        }).catch(function () {
+            var li = $('<li>').html('Error fetching data')
+                .addClass('bg-warning text-center list-group-item');
+            $('#task').append(li);
+        });
+
+
+
         $('button').click(function () {
 
             var text = $('input[type=text]').val();
 
             if (!text) return false;
-            var del = $('<a>').attr('href', '#').html('&times;').click(function () {
-                $(this).parent().remove();
-                $('h1 span').html($('#task li').length)
-            })
 
-            var checkbox = $('<input>').attr('type', 'checkbox').click(function () {
-                if ($(this).is(':checked')) {
-                    $(this).parent().appendTo('#done')
-                } else {
-                    $(this).parent().appendTo('#task')
+
+            fetch(api, {
+                method: 'post',
+                body: JSON.stringify({ name: text }),
+                headers: {
+                    'content-type': 'application/json'
                 }
-                $('h1 span').html($('#task li').length)
-            })
+            }).then((res)=>{
+                return res.json();
+            }).then((data)=>{
+                name=data.name;
+                id=data.id;
+                console.log(data.id,name,id);
+                EditAndDelete(name,id);
+                $('h1 span').html($('#task li').length);
+            });
 
-            $('<li>')
-                .addClass('list-group-item')
-                .html(text)
-                .prepend(checkbox)
-                .append(del)
-                .appendTo('#task')
-
-            $('h1 span').html($('#task li').length)
+            
 
             $('input[type=text]').val('').focus();
 
